@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login Pengguna</title>
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -24,7 +25,7 @@
             <div class="card-header text-center"><a href="{{ url('/') }}" class="h1"><b>Admin</b>LTE</a></div>
             <div class="card-body">
                 <p class="login-box-msg">Sign in to start your session</p>
-                <form action="{{ url('login') }}" method="POST" id="form-login">
+                <form action="{{ url('postlogin') }}" method="POST" id="form-login">
                     @csrf
                     <div class="input-group mb-3">
                         <input type="text" id="username" name="username" class="form-control" placeholder="Username">
@@ -85,8 +86,8 @@
         $(document).ready(function () {
             $("#form-login").validate({
                 rules: {
-                    username: { required: true, minlength: 3, maxlength: 20 },
-                    password: { required: true, minlength: 6, maxlength: 20 }
+                    username: { required: true },
+                    password: { required: true }
                 },
                 submitHandler: function (form) { // ketika valid, maka bagian yg akan dijalankan
                     $.ajax({
