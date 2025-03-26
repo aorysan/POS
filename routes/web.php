@@ -10,9 +10,12 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Auth\Middleware\Authorize;
 
-Route::get('login', [AuthController::class, 'login'])->name('login');
-Route::post('postlogin', [AuthController::class, 'postlogin']);  
-Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
+// Route::group(['prefix' => 'auth'], function () {
+    Route::get('login', [AuthController::class, 'login'])->name('login');
+    Route::post('postlogin', [AuthController::class, 'postlogin']);  
+    Route::post('store_ajax', [AuthController::class, 'store_ajax']);
+    Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
+// });
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [WelcomeController::class, 'index']);

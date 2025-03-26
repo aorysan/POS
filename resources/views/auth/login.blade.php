@@ -7,7 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login Pengguna</title>
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="{{ asset('AdminLTE/plugins/fontawesome-free/css/all.min.css') }}">
     <!-- icheck bootstrap -->
@@ -16,16 +17,28 @@
     <link rel="stylesheet" href="{{ asset('AdminLTE/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}">
+    <!-- Custom CSS for button adjustments -->
+    <style>
+        .btn-smaller {
+            padding: 0.25rem 0.75rem; /* Smaller padding for a smaller button */
+            font-size: 0.875rem; /* Smaller font size */
+            white-space: nowrap; /* Prevents text from wrapping to a new line */
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem; /* Space between buttons */
+            justify-content: flex-end; /* Aligns buttons to the right within col-4 */
+        }
+    </style>
 </head>
 
 <body class="hold-transition login-page">
     <div class="login-box">
-        <!-- /.login-logo -->
         <div class="card card-outline card-primary">
             <div class="card-header text-center"><a href="{{ url('/') }}" class="h1"><b>Admin</b>LTE</a></div>
             <div class="card-body">
                 <p class="login-box-msg">Sign in to start your session</p>
-                <form action="{{ url('postlogin') }}" method="POST" id="form-login">
+                <form action="{{ url('/postlogin') }}" method="POST" id="form-login">
                     @csrf
                     <div class="input-group mb-3">
                         <input type="text" id="username" name="username" class="form-control" placeholder="Username">
@@ -52,29 +65,72 @@
                                 <input type="checkbox" id="remember"><label for="remember">Remember Me</label>
                             </div>
                         </div>
-                        <!-- /.col -->
                         <div class="col-4">
-                            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                            <div class="button-group">
+                                <button type="button" id="signup-btn" class="btn btn-success btn-smaller" data-toggle="modal" data-target="#registerModal">Sign Up</button>
+                                <button type="submit" class="btn btn-primary btn-smaller">Sign In</button>
+                            </div>
                         </div>
-                        <!-- /.col -->
                     </div>
                 </form>
             </div>
-            <!-- /.card-body -->
         </div>
-        <!-- /.card -->
     </div>
-    <!-- /.login-box -->
-    <!-- jQuery -->
+
+    <!-- Registration Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel"
+        aria-hidden="true">
+        <form action="{{ url('store_ajax') }}" method="POST" id="form-tambah">
+            @csrf
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="registerModalLabel">Registrasi</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">×</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Level Pengguna</label>
+                            <select name="level_id" id="level_id" class="form-control" required>
+                                <option value="">- Pilih Level -</option>
+                                @foreach($level as $l)
+                                    <option value="{{ $l->level_id }}">{{ $l->level_nama }}</option>
+                                @endforeach
+                            </select>
+                            <small id="error-level_id" class="error-text form-text text-danger"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input value="" type="text" name="username" id="username" class="form-control" required>
+                            <small id="error-username" class="error-text form-text text-danger"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama</label>
+                            <input value="" type="text" name="nama" id="nama" class="form-control" required>
+                            <small id="error-nama" class="error-text form-text text-danger"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input value="" type="password" name="password" id="password" class="form-control" required>
+                            <small id="error-password" class="error-text form-text text-danger"></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-dismiss="modal" class="btn btn-warning">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts -->
     <script src="{{ asset('AdminLTE/plugins/jquery/jquery.min.js') }}"></script>
-    <!-- Bootstrap 4 -->
     <script src="{{ asset('AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <!-- jquery-validation -->
     <script src="{{ asset('AdminLTE/plugins/jquery-validation/jquery.validate.min.js') }}"></script>
     <script src="{{ asset('AdminLTE/plugins/jquery-validation/additional-methods.min.js') }}"></script>
-    <!-- SweetAlert2 -->
     <script src="{{ asset('AdminLTE/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
-    <!-- AdminLTE App -->
     <script src="{{ asset('AdminLTE/dist/js/adminlte.min.js') }}"></script>
     <script>
         $.ajaxSetup({
@@ -82,20 +138,21 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        
+
         $(document).ready(function () {
+            // Login form validation
             $("#form-login").validate({
                 rules: {
                     username: { required: true },
                     password: { required: true }
                 },
-                submitHandler: function (form) { // ketika valid, maka bagian yg akan dijalankan
+                submitHandler: function (form) {
                     $.ajax({
                         url: form.action,
                         type: form.method,
                         data: $(form).serialize(),
                         success: function (response) {
-                            if (response.status) { // jika sukses
+                            if (response.status) {
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Berhasil',
@@ -103,7 +160,7 @@
                                 }).then(function () {
                                     window.location = response.redirect;
                                 });
-                            } else { // jika error
+                            } else {
                                 $('.error-text').text('');
                                 $.each(response.msgField, function (prefix, val) {
                                     $('#error-' + prefix).text(val[0]);
@@ -122,6 +179,57 @@
                 errorPlacement: function (error, element) {
                     error.addClass('invalid-feedback');
                     element.closest('.input-group').append(error);
+                },
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass('is-invalid');
+                }
+            });
+
+            // Registration form validation
+            $("#form-tambah").validate({
+                rules: {
+                    level_id: { required: true },
+                    username: { required: true },
+                    nama: { required: true },
+                    password: { required: true }
+                },
+                submitHandler: function (form) {
+                    $.ajax({
+                        url: form.action,
+                        type: form.method,
+                        data: $(form).serialize(),
+                        success: function (response) {
+                            if (response.status) {
+                                $('#registerModal').modal('hide');
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: response.message
+                                }).then(function () {
+                                    window.location.reload(); // Reload to reset the form
+                                });
+                            } else {
+                                $('.error-text').text('');
+                                $.each(response.msgField, function (prefix, val) {
+                                    $('#error-' + prefix).text(val[0]);
+                                });
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Terjadi Kesalahan',
+                                    text: response.message
+                                });
+                            }
+                        }
+                    });
+                    return false;
+                },
+                errorElement: 'span',
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
                 },
                 highlight: function (element, errorClass, validClass) {
                     $(element).addClass('is-invalid');

@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\UserModel;
+use App\Models\LevelModel;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -12,7 +16,8 @@ class AuthController extends Controller
         if (Auth::check()) { // jika sudah login, maka redirect ke halaman home
             return redirect('/');
         }
-        return view('auth.login');
+        $level = LevelModel::all();
+        return view('auth.login')->with('level', $level);
     }
     public function postlogin(Request $request)
     {
@@ -38,5 +43,48 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('login');
+    }
+
+    public function register()
+    {
+        $level = LevelModel::all();
+
+        return view('auth.register')->with('level', $level);
+    }
+
+    public function store_ajax(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'level_id' => 'required|integer',
+                'username' => 'required|string|min:3|unique:m_user,username',
+                'nama' => 'required|string|max:100',
+                'password' => 'required|string|min:6'
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validasi gagal',
+                    'msgField' => $validator->errors()
+                ]);
+            }
+
+            // UserModel::create($request->all());
+            $user = new UserModel();
+            $user->username = $request->username;
+            $user->password = Hash::make($request->password);
+            $user->nama = $request->nama;
+            $user->level_id = $request->level_id;
+            $user->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Registrasi berhasil'
+            ]);
+        }
+        redirect('/');
     }
 }
