@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/barang/import', [BarangController::class, 'import']);
         Route::post('/barang/import_ajax', [BarangController::class, 'import_ajax']);
         Route::get('/barang/export_excel', [BarangController::class, 'export_excel']);
+        Route::get('/barang/export_pdf', [BarangController::class, 'export_pdf']);
         Route::get('/barang/{id}', [BarangController::class, 'show']);
         Route::get('/barang/{id}/edit_ajax', [BarangController::class, 'edit_ajax']);
         Route::put('/barang/{id}/update_ajax', [BarangController::class, 'update_ajax']);

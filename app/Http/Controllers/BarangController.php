@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarangController extends Controller
 {
@@ -218,6 +219,25 @@ class BarangController extends Controller
         header('Pragma: public');
 
         $writer->save('php://output');
+    }
+
+    public function export_pdf()
+    {
+        // Fetch data from BarangModel
+        $barang = BarangModel::select('kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual')
+            ->orderBy('kategori_id')
+            ->orderBy('barang_kode')
+            ->with('kategori')
+            ->get();
+    
+        // Load view and pass data
+        $pdf = Pdf::loadView('/barang/export_pdf', ['barang' => $barang]);
+    
+        // Set paper size and orientation (optional)
+        $pdf->setPaper('A4', 'portrait');
+    
+        // Stream the PDF to the browser
+        return $pdf->stream('Data Barang ' . date('Y-m-d H:i:s') . '.pdf');
     }
 
     public function edit_ajax(string $id)
