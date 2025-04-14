@@ -22,11 +22,11 @@
                 </div>
                 <div class="form-group">
                     <label>Harga Beli</label>
-                    <input value="" type="barang_beli" name="barang_beli" id="barang_beli" class="form-control" required>
+                    <input value="" type="harga_beli" name="harga_beli" id="harga_beli" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label>Harga Jual</label>
-                    <input value="" type="barang_jual" name="barang_jual" id="barang_jual" class="form-control" required>
+                    <input value="" type="harga_jual" name="harga_jual" id="harga_jual" class="form-control" required>
                 </div>
             </div>
             <div class="modal-footer">
@@ -43,8 +43,8 @@
                 kategori_id: { required: true},
                 barang_kode: { required: true},
                 barang_nama: { required: true},
-                barang_beli: { required: true},
-                barang_jual: { required: true}
+                harga_beli: { required: true},
+                harga_jual: { required: true}
             },
             submitHandler: function (form) {
                 $.ajax({

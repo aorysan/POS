@@ -60,19 +60,21 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['authorize:Admin,Manager,Staff,Karyawan'])->group(function() {
         Route::get('/barang', [BarangController::class, 'index']);
         Route::post('/barang/list', [BarangController::class, 'list']);
-        Route::get('/barang/create', [BarangController::class, 'create']);
-        Route::post('/barang', [BarangController::class, 'store']);
         Route::get('/barang/create_ajax', [BarangController::class, 'create_ajax']);
         Route::post('/barang/ajax', [BarangController::class, 'store_ajax']);
+        Route::get('/barang/import', [BarangController::class, 'import']);
+        Route::post('/barang/import_ajax', [BarangController::class, 'import_ajax']);
         Route::get('/barang/{id}', [BarangController::class, 'show']);
-        // Route::get('/{id}/show_ajax', [BarangController::class, 'show_ajax']);
-        Route::get('/barang/{id}/edit', [BarangController::class, 'edit']);
-        Route::put('/barang/{id}', [BarangController::class, 'update']);
         Route::get('/barang/{id}/edit_ajax', [BarangController::class, 'edit_ajax']);
         Route::put('/barang/{id}/update_ajax', [BarangController::class, 'update_ajax']);
         Route::get('/barang/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']);
         Route::delete('/barang/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
-        Route::delete('/barang/{id}', [BarangController::class, 'destroy']);
+        // Route::get('/barang/create', [BarangController::class, 'create']);
+        // Route::post('/barang', [BarangController::class, 'store']);
+        // Route::get('/{id}/show_ajax', [BarangController::class, 'show_ajax']);
+        // Route::get('/barang/{id}/edit', [BarangController::class, 'edit']);
+        // Route::put('/barang/{id}', [BarangController::class, 'update']);
+        // Route::delete('/barang/{id}', [BarangController::class, 'destroy']);
     });
     
     Route::middleware(['authorize:Admin,Manager,Karyawan'])->group(function() {

@@ -7,10 +7,10 @@
         </div>
         <div class="card-body">
             @empty($barang)
-            <div class="alert alert-danger alert-dismissible">
-                <h5><i class="icon fas fa-ban"></i> Kesalahan!</h5>
-                Data yang Anda cari tidak ditemukan.
-            </div>
+                <div class="alert alert-danger alert-dismissible">
+                    <h5><i class="icon fas fa-ban"></i> Kesalahan!</h5>
+                    Data yang Anda cari tidak ditemukan.
+                </div>
             @else
                 <table class="table table-bordered table-striped table-hover table-sm">
                     <tr>
@@ -42,8 +42,8 @@
             <a href="{{ url('barang') }}" class="btn btn-sm btn-default mt-2">Kembali</a>
         </div>
     </div>
-    @endsection
-    @push('css')
-    @endpush
-    @push('js')
-    @endpush
+@endsection
+@push('css')
+@endpush
+@push('js')
+@endpush

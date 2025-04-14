@@ -29,28 +29,32 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Kategori</label>
-                        <input value="{{ $barang->kategori_id }}" type="text" name="kategori_id" id="kategori_id" class="form-control"
-                            required>
+                        <input value="{{ $barang->kategori_id }}" type="text" name="kategori_id" id="kategori_id"
+                            class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label>Nama</label>
-                        <input value="{{ $barang->barang_nama }}" type="text" name="barang_nama" id="barang_nama" class="form-control" required>
+                        <input value="{{ $barang->barang_nama }}" type="text" name="barang_nama" id="barang_nama"
+                            class="form-control" required>
                         <small id="error-barang_nama" class="error-text form-text text-danger"></small>
                     </div>
                     <div class="form-group">
                         <label>Kode</label>
-                        <input value="{{ $barang->barang_kode }}" type="barang_kode" name="barang_kode" id="barang_kode" class="form-control">
+                        <input value="{{ $barang->barang_kode }}" type="barang_kode" name="barang_kode" id="barang_kode"
+                            class="form-control">
                         <small id="error-barang_kode" class="error-text form-text text-danger"></small>
                     </div>
                     <div class="form-group">
                         <label>Harga Beli</label>
-                        <input value="{{ $barang->barang_beli }}" type="barang_beli" name="barang_beli" id="barang_beli" class="form-control">
-                        <small id="error-barang_beli" class="error-text form-text text-danger"></small>
+                        <input value="{{ $barang->harga_beli }}" type="harga_beli" name="harga_beli" id="harga_beli"
+                            class="form-control">
+                        <small id="error-harga_beli" class="error-text form-text text-danger"></small>
                     </div>
                     <div class="form-group">
                         <label>Harga Jual</label>
-                        <input value="{{ $barang->barang_jual }}" type="barang_jual" name="barang_jual" id="barang_jual" class="form-control">
-                        <small id="error-barang_jual" class="error-text form-text text-danger"></small>
+                        <input value="{{ $barang->harga_jual }}" type="harga_jual" name="harga_jual" id="harga_jual"
+                            class="form-control">
+                        <small id="error-harga_jual" class="error-text form-text text-danger"></small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -64,11 +68,11 @@
         $(document).ready(function () {
             $("#form-edit").validate({
                 rules: {
-                    kategori_id: { required: true},
-                    barang_nama: { required: true},
-                    barang_kode: { required: true},
-                    barang_beli: { required: true},
-                    barang_jual: { required: true}
+                    kategori_id: { required: true },
+                    barang_nama: { required: true },
+                    barang_kode: { required: true },
+                    harga_beli: { required: true },
+                    harga_jual: { required: true }
                 },
                 submitHandler: function (form) {
                     $.ajax({
