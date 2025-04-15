@@ -8,6 +8,8 @@ use App\Models\UserModel;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LevelController extends Controller
 {
@@ -51,40 +53,6 @@ class LevelController extends Controller
             ->make(true);
     }
 
-    public function create()
-    {
-        $breadcrumb = (object) [
-            'title' => 'Tambah User',
-            'list' => ['Home', 'level']
-        ];
-
-        $page = (object) [
-            'title' => 'Tambah level baru'
-        ];
-
-        $level = LevelModel::all();
-        $activeMenu = 'level';
-
-        return view('level.create', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu]);
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'level_id' => 'required|integer',
-            'level_nama' => 'required',
-            'level_kode' => 'required'
-        ]);
-
-        $level = new LevelModel();
-        $level->level_nama = $request->level_nama;
-        $level->level_kode = $request->level_kode;
-        $level->level_id = $request->level_id;
-        $level->save();
-
-        return redirect('/level')->with('success', 'Data level berhasil disimpan');
-    }
-
     public function show(string $id)
     {
         $level = LevelModel::find($id);
@@ -101,62 +69,6 @@ class LevelController extends Controller
         $activeMenu = 'level';
 
         return view('level.show', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu]);
-    }
-
-    public function edit(string $id)
-    {
-        $level = LevelModel::find($id);
-
-        // Cek jika data tidak ditemukan
-        if (!$level) {
-            return redirect()->route('/level')->with('error', 'Level tidak ditemukan.');
-        }
-
-        $breadcrumb = (object) [
-            'title' => 'Edit Level',
-            'list' => ['Home', 'Level', 'Edit']
-        ];
-
-        $page = (object) [
-            'title' => 'Edit Level'
-        ];
-
-        $activeMenu = 'level';
-
-        return view('level.edit', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu]);
-    }
-
-
-    public function update(Request $request, string $id) {
-        $request->validate([
-            'level_id' => 'required|integer',
-            'level_nama' => 'required|string|max:100',
-            'level_kode' => 'required'
-        ]);
-
-        $level = LevelModel::find($id);
-        $level->level_nama = $request->level_nama;
-        $level->level_kode = $request->level_kode;
-        $level->level_id = $request->level_id;
-        $level->save();
-
-        return redirect('/level')->with('success', 'Data level berhasil disimpan');    
-    }
-
-    public function destroy(string $id)
-    {
-        $check = LevelModel::find($id);
-        if (!$check) {
-            return redirect('/level')->with('error', 'Data level tidak ditemukan');
-        }
-
-        try {
-            LevelModel::destroy($id); // Hapus data level
-            return redirect('/level')->with('success', 'Data level berhasil dihapus');
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Jika terjadi error ketika menghapus data, redirect kembali ke halaman dengan membawa pesan error
-            return redirect('/level')->with('error', 'Data level gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
-        }
     }
 
     public function create_ajax()
@@ -192,6 +104,120 @@ class LevelController extends Controller
             ]);
         }
         redirect('/');
+    }
+
+    public function import() {
+        return view('level.import');
+    }
+
+    public function import_excel(Request $request) {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'file_level' => ['required', 'mimes:xlsx', 'max:1024']
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi Gagal',
+                    'msgField' => $validator->errors()
+                ]);
+            }
+
+            $file = $request->file('file_level');
+            
+            $reader = IOFactory::createReader('Xlsx');
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            $data = $sheet->toArray(null, false, true, true);
+
+            $insert = [];
+            if (count($data) > 1) {
+                foreach ($data as $baris => $value) {
+                    if ($baris > 1) {
+                        $insert[] = [
+                            'level_id' => $value['A'],
+                            'level_kode' => $value['B'],
+                            'level_nama' => $value['C']
+                        ];
+                    }
+                }
+
+                if (count($insert) > 0) {
+                    LevelModel::insertOrIgnore($insert);
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Data level berhasil diimport'
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Tidak ada data yang diimport'
+                    ]);
+                }
+            }
+        }
+        redirect('/');
+    }
+
+    public function export_excel(Request $request) {
+        $level = LevelModel::select('level_id', 'level_kode', 'level_nama')
+            ->orderBy('level_id', 'asc')
+            ->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'ID Level');
+        $sheet->setCellValue('C1', 'Kode Level');
+        $sheet->setCellValue('D1', 'Nama Level');
+
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+
+        $no = 1;
+        $baris = 2;
+        foreach ($level as $key => $value) {
+            $sheet->setCellValue('A' . $baris, $no);
+            $sheet->setCellValue('B' . $baris, $value->level_id);
+            $sheet->setCellValue('C' . $baris, $value->level_kode);
+            $sheet->setCellValue('D' . $baris, $value->level_nama);
+            $baris++;
+            $no++;
+        }
+        
+        foreach (range('A', 'D') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+        
+        $sheet->setTitle('Data Level');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $fileName = 'Data Level ' . date('Y-m-d H:i:s') . '.xlsx';
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        header('Cache-Control: max-age=0');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer->save('php://output');
+    }
+
+    public function export_pdf(Request $request) {
+        $level = LevelModel::select('level_id', 'level_kode', 'level_nama')
+            ->orderBy('level_id', 'asc')
+            ->get();
+
+        $pdf = PDF::loadView('/level/export_pdf', ['level' => $level]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('Data Level ' . date('Y-m-d H:i:s') . '.pdf');
     }
 
     public function edit_ajax(string $id)
@@ -267,4 +293,94 @@ class LevelController extends Controller
         }
         redirect('/');
     }
+
+        // public function edit(string $id)
+    // {
+    //     $level = LevelModel::find($id);
+
+    //     // Cek jika data tidak ditemukan
+    //     if (!$level) {
+    //         return redirect()->route('/level')->with('error', 'Level tidak ditemukan.');
+    //     }
+
+    //     $breadcrumb = (object) [
+    //         'title' => 'Edit Level',
+    //         'list' => ['Home', 'Level', 'Edit']
+    //     ];
+
+    //     $page = (object) [
+    //         'title' => 'Edit Level'
+    //     ];
+
+    //     $activeMenu = 'level';
+
+    //     return view('level.edit', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu]);
+    // }
+
+    // public function update(Request $request, string $id) {
+    //     $request->validate([
+    //         'level_id' => 'required|integer',
+    //         'level_nama' => 'required|string|max:100',
+    //         'level_kode' => 'required'
+    //     ]);
+
+    //     $level = LevelModel::find($id);
+    //     $level->level_nama = $request->level_nama;
+    //     $level->level_kode = $request->level_kode;
+    //     $level->level_id = $request->level_id;
+    //     $level->save();
+
+    //     return redirect('/level')->with('success', 'Data level berhasil disimpan');    
+    // }
+
+    // public function destroy(string $id)
+    // {
+    //     $check = LevelModel::find($id);
+    //     if (!$check) {
+    //         return redirect('/level')->with('error', 'Data level tidak ditemukan');
+    //     }
+
+    //     try {
+    //         LevelModel::destroy($id); // Hapus data level
+    //         return redirect('/level')->with('success', 'Data level berhasil dihapus');
+    //     } catch (\Illuminate\Database\QueryException $e) {
+    //         // Jika terjadi error ketika menghapus data, redirect kembali ke halaman dengan membawa pesan error
+    //         return redirect('/level')->with('error', 'Data level gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
+    //     }
+    // }
+
+    
+    // public function create()
+    // {
+    //     $breadcrumb = (object) [
+    //         'title' => 'Tambah User',
+    //         'list' => ['Home', 'level']
+    //     ];
+
+    //     $page = (object) [
+    //         'title' => 'Tambah level baru'
+    //     ];
+
+    //     $level = LevelModel::all();
+    //     $activeMenu = 'level';
+
+    //     return view('level.create', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu]);
+    // }
+
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'level_id' => 'required|integer',
+    //         'level_nama' => 'required',
+    //         'level_kode' => 'required'
+    //     ]);
+
+    //     $level = new LevelModel();
+    //     $level->level_nama = $request->level_nama;
+    //     $level->level_kode = $request->level_kode;
+    //     $level->level_id = $request->level_id;
+    //     $level->save();
+
+    //     return redirect('/level')->with('success', 'Data level berhasil disimpan');
+    // }
 }

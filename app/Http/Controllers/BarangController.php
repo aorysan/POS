@@ -127,16 +127,12 @@ class BarangController extends Controller
                     'msgField' => $validator->errors()
                 ]);
             }
-
             $file = $request->file('file_barang'); // ambil file dari request
-
             $reader = IOFactory::createReader('Xlsx'); // load reader file excel
             $reader->setReadDataOnly(true); // hanya membaca data
             $spreadsheet = $reader->load($file->getRealPath()); // load file excel
             $sheet = $spreadsheet->getActiveSheet(); // ambil sheet yang aktif
-
             $data = $sheet->toArray(null, false, true, true); // ambil data excel
-
             $insert = [];
             if (count($data) > 1) { // jika data lebih dari 1 baris
                 foreach ($data as $baris => $value) {
@@ -151,7 +147,7 @@ class BarangController extends Controller
                         ];
                     }
                 }
-                if (count($insert) > 1) {
+                if (count($insert) > 0) {
                     // insert data ke database, jika data sudah ada, maka diabaikan
                     BarangModel::insertOrIgnore($insert);
                 }
@@ -213,7 +209,6 @@ class BarangController extends Controller
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $fileName . '"');
         header('Cache-Control: max-age=0');
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         header('Cache-Control: cache, must-revalidate');
         header('Pragma: public');
