@@ -1,4 +1,4 @@
-<form action="{{ url('/barang/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
+<form action="{{ url('/barang/import_excel') }}" method="POST" id="form-import" enctype="multipart/form-data">
     @csrf
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -49,7 +49,7 @@
                             title: 'Berhasil',
                             text: response.message
                         });
-                            tableBarang.ajax.reload(); // reload datatable
+                            dataBarang.ajax.reload(); // reload datatable
                         }else{ // jika error
                             $('.error-text').text('');
                             $.each(response.msgField, function(prefix, val) {

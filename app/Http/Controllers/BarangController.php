@@ -112,7 +112,7 @@ class BarangController extends Controller
         return view('barang.import');
     }
 
-    public function import_ajax(Request $request)
+    public function import_excel(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
@@ -151,7 +151,7 @@ class BarangController extends Controller
                         ];
                     }
                 }
-                if (count($insert) > 0) {
+                if (count($insert) > 1) {
                     // insert data ke database, jika data sudah ada, maka diabaikan
                     BarangModel::insertOrIgnore($insert);
                 }
