@@ -194,7 +194,7 @@
                     level_id: { required: true },
                     username: { required: true },
                     nama: { required: true },
-                    password: { required: true }
+                    password: { required: true, minlength: 5}
                 },
                 submitHandler: function (form) {
                     $.ajax({

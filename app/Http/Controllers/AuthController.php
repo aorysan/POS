@@ -56,10 +56,10 @@ class AuthController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'level_id' => 'required|integer',
-                'username' => 'required|string|min:3|unique:m_user,username',
-                'nama' => 'required|string|max:100',
-                'password' => 'required|string|min:6'
+                'level_id' => 'required',
+                'username' => 'required',
+                'nama' => 'required',
+                'password' => 'required|min:5'
             ];
 
             $validator = Validator::make($request->all(), $rules);
