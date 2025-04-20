@@ -17,7 +17,7 @@
   {{-- Sweet Alert --}}
   <link rel="stylesheet" href="{{ asset('AdminLTE/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/AdminLTE.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}">
   @stack('css')
 </head>
 <body class="hold-transition sidebar-mini">
@@ -80,7 +80,7 @@
 {{-- Sweet Alert --}}
 <script src="{{ asset('AdminLTE/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 <!-- AdminLTE App -->
-<script src="{{ asset('AdminLTE/dist/js/AdminLTE.min.js') }}"></script>
+<script src="{{ asset('AdminLTE/dist/js/adminlte.min.js') }}"></script>
 <script>
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}});
 </script>

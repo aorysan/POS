@@ -20,10 +20,9 @@ use Illuminate\Auth\Middleware\Authorize;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [WelcomeController::class, 'index']);
-
+    
     Route::middleware(['authorize:Admin,Manager,Staff,Karyawan'])->group(function() {
-        Route::get('/profile', [ProfileController::class, 'profilePage']);
-        Route::post('/profile/update_picture', [ProfileController::class, 'updatePicture'])->name('profile.update_picture');
+        Route::post('/profile/update', [ProfileController::class, 'update_profile']);
     });
     
     Route::middleware(['authorize:Admin'])->group(function() {

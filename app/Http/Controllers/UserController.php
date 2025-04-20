@@ -112,9 +112,10 @@ class UserController extends Controller
                 foreach ($data as $baris => $value) {
                     if ($baris > 1) {
                         $insert[] = [
-                            'user_kode' => $value['A'],
-                            'user_nama' => $value['B'],
-                            'level_kode' => $value['C'],
+                            'level_id' => $value['A'],
+                            'username' => $value['B'],
+                            'nama' => $value['C'],
+                            'password' => ($value['D'])
                         ];
                     }
                 }

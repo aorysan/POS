@@ -20,14 +20,20 @@
     <!-- Custom CSS for button adjustments -->
     <style>
         .btn-smaller {
-            padding: 0.25rem 0.75rem; /* Smaller padding for a smaller button */
-            font-size: 0.875rem; /* Smaller font size */
-            white-space: nowrap; /* Prevents text from wrapping to a new line */
+            padding: 0.25rem 0.75rem;
+            /* Smaller padding for a smaller button */
+            font-size: 0.875rem;
+            /* Smaller font size */
+            white-space: nowrap;
+            /* Prevents text from wrapping to a new line */
         }
+
         .button-group {
             display: flex;
-            gap: 0.5rem; /* Space between buttons */
-            justify-content: flex-end; /* Aligns buttons to the right within col-4 */
+            gap: 0.5rem;
+            /* Space between buttons */
+            justify-content: flex-end;
+            /* Aligns buttons to the right within col-4 */
         }
     </style>
 </head>
@@ -67,7 +73,8 @@
                         </div>
                         <div class="col-4">
                             <div class="button-group">
-                                <button type="button" id="signup-btn" class="btn btn-success btn-smaller" data-toggle="modal" data-target="#registerModal">Sign Up</button>
+                                <button type="button" id="signup-btn" class="btn btn-success btn-smaller"
+                                    data-toggle="modal" data-target="#registerModal">Sign Up</button>
                                 <button type="submit" class="btn btn-primary btn-smaller">Sign In</button>
                             </div>
                         </div>
@@ -194,7 +201,7 @@
                     level_id: { required: true },
                     username: { required: true },
                     nama: { required: true },
-                    password: { required: true, minlength: 5}
+                    password: { required: true, minlength: 5 }
                 },
                 submitHandler: function (form) {
                     $.ajax({

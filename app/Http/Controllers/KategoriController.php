@@ -115,7 +115,7 @@ class KategoriController extends Controller
         return view('kategori.import');
     }
 
-    public function import_ajax(Request $request)
+    public function import_excel(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
@@ -145,9 +145,8 @@ class KategoriController extends Controller
                 foreach ($data as $baris => $value) {
                     if ($baris > 1) {
                         $insert[] = [
-                            'kategori_id' => $value['A'],
-                            'kategori_kode' => $value['B'],
-                            'kategori_nama' => $value['C'],
+                            'kategori_kode' => $value['A'],
+                            'kategori_nama' => $value['B'],
                             'created_at' => now(),
                         ];
                     }

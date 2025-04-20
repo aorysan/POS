@@ -5,10 +5,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Document</title>
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{{ asset('AdminLTE/plugins/fontawesome-free/css/all.min.css') }}">
+    <style>
+        .profile-dropdown .dropdown-menu {
+            width: 200px;
+            text-align: center;
+        }
+
+        .profile-dropdown .dropdown-menu p {
+            margin: 5px 0;
+        }
+
+        .profile-pic {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            object-fit: cover;
+        }
+
+        .change-pic-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .change-pic-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .navbar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            /* Center items vertically in the navbar */
+        }
+    </style>
 </head>
 
-<body>
+<body class="hold-transition sidebar-mini">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <!-- Left navbar links -->
@@ -57,7 +101,6 @@
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
                         <div class="media">
                             <img src="../../dist/img/user1-128x128.jpg" alt="User Avatar"
                                 class="img-size-50 mr-3 img-circle">
@@ -70,11 +113,9 @@
                                 <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
                             </div>
                         </div>
-                        <!-- Message End -->
                     </a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
                         <div class="media">
                             <img src="../../dist/img/user8-128x128.jpg" alt="User Avatar"
                                 class="img-size-50 img-circle mr-3">
@@ -87,11 +128,9 @@
                                 <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
                             </div>
                         </div>
-                        <!-- Message End -->
                     </a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
                         <div class="media">
                             <img src="../../dist/img/user3-128x128.jpg" alt="User Avatar"
                                 class="img-size-50 img-circle mr-3">
@@ -104,7 +143,6 @@
                                 <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
                             </div>
                         </div>
-                        <!-- Message End -->
                     </a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
@@ -147,9 +185,100 @@
                     <i class="fas fa-th-large"></i>
                 </a>
             </li>
+            <li class="nav-item dropdown profile-dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <img src="{{ asset('storage/profile_pics/' . Auth::user()->username . '.jpg') }}" alt="Profile Picture" class="profile-pic" id="profilePic"> 
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" id="profileDropdown">
+                    <div class="dropdown-item">
+                        <img src="{{ asset('storage/profile_pics/' . Auth::user()->username . '.jpg') }}"
+                            alt="Profile Picture" class="profile-pic" id="profilePic">
+                        <a href="#" class="dropdown-item dropdown-footer" data-toggle="modal"
+                            data-target="#changeImageModal">
+                            <button class="btn btn-primary btn-block">Change Image</button>
+                        </a>
+                    </div>
+                </div>
+            </li>
         </ul>
     </nav>
+    <div class="modal fade" id="changeImageModal" tabindex="-1" role="dialog" aria-labelledby="changeImageModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeImageModalLabel">Change Profile Image</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ url('/profile/update') }}" method="POST" id="changeImageForm" name="changeImageForm"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="profileImage">Upload New Image</label>
+                            <input type="file" class="form-control" id="profileImage" name="profileImage"
+                                accept="image/*" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <!-- /.navbar -->
+
+    <!-- jQuery (required for AdminLTE) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- AdminLTE JS -->
+    <script src="{{ asset('AdminLTE/dist/js/adminlte.min.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Handle profile picture upload
+            $('#changeImageForm').on('submit', function (e) {
+                e.preventDefault();
+                console.log('Form submitted'); // Tambahkan log
+
+                let formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        console.log('Success:', response); // Tambahkan log
+                        if (response.status) {
+                            alert(response.message);
+                            location.reload(); // Refresh halaman
+                        } else {
+                            alert('Failed to update profile image.');
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('Error:', xhr); // Tambahkan log
+                        // Handle validation errors
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            let errorMessage = '';
+                            for (let key in errors) {
+                                errorMessage += errors[key][0] + '\n';
+                            }
+                            alert(errorMessage); // Show validation errors
+                        } else {
+                            alert('An error occurred. Please try again.');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
