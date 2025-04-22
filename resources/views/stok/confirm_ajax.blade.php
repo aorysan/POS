@@ -1,79 +1,61 @@
-@empty($barang)
+@empty($stok)
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Kesalahan</h5>
-                <button type="button" class="close" data-dismiss="modal" arialabel="Close"><span
-                        aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-danger">
                     <h5><i class="icon fas fa-ban"></i> Kesalahan!!!</h5>
                     Data yang anda cari tidak ditemukan
                 </div>
-                <a href="{{ url('/barang') }}" class="btn btn-warning">Kembali</a>
+                <a href="{{ url('/stok') }}" class="btn btn-warning">Kembali</a>
             </div>
         </div>
     </div>
 @else
-    <form action="{{ url('/barang/' . $barang->barang_id . '/update_ajax') }}" method="POST" id="form-edit">
+    <form action="{{ url('/stok/' . $stok->stok_id . '/delete_ajax') }}" method="POST" id="form-delete">
         @csrf
-        @method('PUT')
+        @method('DELETE')
         <div id="modal-master" class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Data Barang</h5>
-                    <button type="button" class="close" data-dismiss="modal" arialabel="Close"><span
-                            aria-hidden="true">&times;</span></button>
+                    <h5 class="modal-title" id="exampleModalLabel">Hapus Data Stok</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Kategori</label>
-                        <input value="{{ $barang->kategori_id }}" type="text" name="kategori_id" id="kategori_id"
-                            class="form-control" required>
+                    <div class="alert alert-warning">
+                        <h5><i class="icon fas fa-ban"></i> Konfirmasi !!!</h5>
+                        Apakah Anda ingin menghapus data seperti di bawah ini?
                     </div>
-                    <div class="form-group">
-                        <label>Nama</label>
-                        <input value="{{ $barang->barang_nama }}" type="text" name="barang_nama" id="barang_nama"
-                            class="form-control" required>
-                        <small id="error-barang_nama" class="error-text form-text text-danger"></small>
-                    </div>
-                    <div class="form-group">
-                        <label>Kode</label>
-                        <input value="{{ $barang->barang_kode }}" type="barang_kode" name="barang_kode" id="barang_kode"
-                            class="form-control">
-                        <small id="error-barang_kode" class="error-text form-text text-danger"></small>
-                    </div>
-                    <div class="form-group">
-                        <label>Harga Beli</label>
-                        <input value="{{ $barang->harga_beli }}" type="harga_beli" name="harga_beli" id="harga_beli"
-                            class="form-control">
-                        <small id="error-harga_beli" class="error-text form-text text-danger"></small>
-                    </div>
-                    <div class="form-group">
-                        <label>Harga Jual</label>
-                        <input value="{{ $barang->harga_jual }}" type="harga_jual" name="harga_jual" id="harga_jual"
-                            class="form-control">
-                        <small id="error-harga_jual" class="error-text form-text text-danger"></small>
-                    </div>
+                    <table class="table table-sm table-bordered table-striped">
+                        <tr>
+                            <th class="text-right col-3">Nama :</th>
+                            <td class="col-9">{{ $stok->barang->barang_nama }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-right col-3">Kode Barang :</th>
+                            <td class="col-9">{{ $stok->barang->barang_kode }}</td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-dismiss="modal" class="btn btn-warning">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="submit" class="btn btn-primary">Ya, Hapus</button>
                 </div>
             </div>
         </div>
     </form>
+
     <script>
         $(document).ready(function () {
-            $("#form-edit").validate({
-                rules: {
-                    kategori_id: { required: true },
-                    barang_nama: { required: true },
-                    barang_kode: { required: true },
-                    harga_beli: { required: true },
-                    harga_jual: { required: true }
-                },
+            $("#form-delete").validate({
+                rules: {},
                 submitHandler: function (form) {
                     $.ajax({
                         url: form.action,
@@ -87,7 +69,7 @@
                                     title: 'Berhasil',
                                     text: response.message
                                 });
-                                dataBarang.ajax.reload();
+                                dataStok.ajax.reload();
                             } else {
                                 $('.error-text').text('');
                                 $.each(response.msgField, function (prefix, val) {
@@ -99,6 +81,13 @@
                                     text: response.message
                                 });
                             }
+                        },
+                        error: function (xhr, status, error) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Terjadi kesalahan pada server'
+                            });
                         }
                     });
                     return false;

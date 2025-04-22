@@ -138,9 +138,9 @@ class BarangController extends Controller
                 foreach ($data as $baris => $value) {
                     if ($baris > 1) { // baris ke 1 adalah header, maka lewati
                         $insert[] = [
-                            'kategori_id' => $value['A'],
-                            'barang_kode' => $value['B'],
-                            'barang_nama' => $value['C'],
+                            'kategori_id'=> $value['A'],
+                            'barang_kode'=> $value['B'],
+                            'barang_nama'=> $value['C'],
                             'harga_beli' => $value['D'],
                             'harga_jual' => $value['E'],
                             'created_at' => now(),

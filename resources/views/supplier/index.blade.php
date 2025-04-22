@@ -29,7 +29,7 @@
                                 <option value="{{$item->supplier_id}}">{{$item->supplier_nama}}</option>
                             @endforeach
                         </select>
-                        <small class="form-text text-muted">supplier supplier</small>
+                        <small class="form-text text-muted">Kategori supplier</small>
                     </div>
                 </div>
             </div>
