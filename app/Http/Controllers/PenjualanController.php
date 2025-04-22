@@ -88,7 +88,7 @@ class PenjualanController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'user_id' => 'required|exists:users,user_id',
+                'user_id' => 'required|exists:m_user,user_id',
                 'penjualan_kode' => 'required',
                 'pembeli' => 'required',
                 'penjualan_tanggal' => 'required',
@@ -115,9 +115,10 @@ class PenjualanController extends Controller
             ]);
     
             if ($penjualan) {
+                // Insert new details
                 foreach ($request->barang_id as $index => $barangId) {
                     DetailModel::create([
-                        'penjualan_barang_id' => $penjualan->penjualan_barang_id,
+                        'penjualan_id' => $penjualan->penjualan_id, // Ensure this is set correctly
                         'barang_id' => $barangId,
                         'detail_harga' => $request->detail_harga[$index],
                         'detail_jumlah' => $request->detail_jumlah[$index],
@@ -306,7 +307,7 @@ class PenjualanController extends Controller
                 'penjualan_kode' => 'required',
                 'pembeli' => 'required',
                 'penjualan_tanggal' => 'required',
-                'barang_id.*' => 'required|exists:m_barang,barang_id',
+                'barang_id.*' => 'required|exists:m,barang_id',
                 'detail_harga.*' => 'required|numeric',
                 'detail_jumlah.*' => 'required|numeric',
             ];
