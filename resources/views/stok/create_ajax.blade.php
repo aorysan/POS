@@ -9,15 +9,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>Level Pengguna</label>
-                    <select name="user_id" id="user_id" class="form-control" required>
-                        <option value="">- Pilih User -</option>
-                        @foreach($users as $u)
-                            <option value="{{ $u->user_id }}">{{ $u->username }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group">
+                    <input type="hidden" name="user_id" value="{{ Auth::user()->username }}" class="form-control" required>
                     <label>Kode Barang</label>
                     <select name="barang_id" id="barang_id" class="form-control" required>
                         <option value="">- Pilih Barang -</option>
@@ -55,7 +47,6 @@
     $(document).ready(function () {
         $("#form-tambah").validate({
             rules: {
-                user_id: { required: true },
                 barang_id: { required: true },
                 barang_nama: { required: true },
                 supplier_id: { required: true },

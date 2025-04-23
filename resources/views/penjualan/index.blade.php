@@ -5,7 +5,6 @@
         <div class="card-header">
             <h3 class="card=title">{{$page->title}}</h3>
             <div class="card-tools">
-                <button onclick="modalAction('{{ url('/penjualan/import') }}')" class="btn btn-info">Import Data</button>
                 <a href="{{ url('/penjualan/export_excel') }}" class="btn btn-primary"><i class="fa fa-fileexcel"></i>Export Data(Excel)</a>
                 <a href="{{ url('/penjualan/export_pdf') }}" class="btn btn-warning"><i class="fa fa-filepdf"></i> Export Data(PDF)</a>
                 <button onclick="modalAction('{{ url('/penjualan/create_ajax') }}')" class="btn btn-success">Tambah Data(Ajax)</button>
@@ -73,7 +72,7 @@
                     "dataType": "json",
                     "type": "POST",
                     "data": function (d) {
-                        d.pembeli = $('#pembeli').val();
+                        d.user_id = $('#user_id').val();
                     }
                 },
                 columns: [
@@ -96,12 +95,12 @@
                         data: "pembeli",
                         className: "",
                         orderable: false,
-                        searchable: false
+                        searchable: true
                     }, {
                         data: "penjualan_tanggal",
                         className: "",
                         orderable: false,
-                        searchable: false
+                        searchable: true
                     }, {
                         data: "aksi",
                         className: "",

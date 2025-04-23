@@ -31,21 +31,25 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label>User</label>
-                        <input value="{{ $penjualan->user->username }}" type="text" name="username" id="username" class="form-control" readonly>
+                        <input value="{{ $penjualan->user->user_id }}" type="text" name="user_id" id="user_id"
+                            class="form-control" readonly>
                     </div>
                     <div class="form-group">
                         <label>Kode Penjualan</label>
-                        <input value="{{ $penjualan->penjualan_kode }}" type="text" name="penjualan_kode" id="penjualan_kode" class="form-control">
+                        <input value="{{ $penjualan->penjualan_kode }}" type="text" name="penjualan_kode"
+                            id="penjualan_kode" class="form-control">
                         <small id="error-penjualan_kode" class="error-text form-text text-danger"></small>
                     </div>
                     <div class="form-group">
                         <label>Pembeli</label>
-                        <input value="{{ $penjualan->pembeli }}" type="text" name="pembeli" id="pembeli" class="form-control">
+                        <input value="{{ $penjualan->pembeli }}" type="text" name="pembeli" id="pembeli"
+                            class="form-control">
                         <small id="error-pembeli" class="error-text form-text text-danger"></small>
                     </div>
                     <div class="form-group">
                         <label>Tanggal Penjualan</label>
-                        <input type="date" name="penjualan_tanggal" id="penjualan_tanggal" class="form-control" value="{{ $penjualan->penjualan_tanggal ? \Carbon\Carbon::parse($penjualan->penjualan_tanggal)->format('Y-m-d') : '' }}">
+                        <input type="date" name="penjualan_tanggal" id="penjualan_tanggal" class="form-control"
+                            value="{{ $penjualan->penjualan_tanggal ? \Carbon\Carbon::parse($penjualan->penjualan_tanggal)->format('Y-m-d') : '' }}">
                         <small id="error-penjualan_tanggal" class="error-text form-text text-danger"></small>
                     </div>
                     <div class="form-group">
@@ -66,15 +70,19 @@
                                             <select name="barang_id[]" class="form-control" required>
                                                 <option value="">- Pilih Barang -</option>
                                                 @foreach($barangs as $barang)
-                                                    <option value="{{ $barang->barang_id }}" {{ $detail->barang_id == $barang->barang_id ? 'selected' : '' }}>{{ $barang->barang_nama }}</option>
+                                                    <option value="{{ $barang->barang_id }}" {{ $detail->barang_id == $barang->barang_id ? 'selected' : '' }}>
+                                                        {{ $barang->barang_nama }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="detail_harga[]" class="form-control" value="{{ $detail->detail_harga }}" required>
+                                            <input type="number" name="detail_harga[]" class="form-control"
+                                                value="{{ $detail->detail_harga }}" required>
                                         </td>
                                         <td>
-                                            <input type="number" name="detail_jumlah[]" class="form-control" value="{{ $detail->detail_jumlah }}" required>
+                                            <input type="number" name="detail_jumlah[]" class="form-control"
+                                                value="{{ $detail->detail_jumlah }}" required>
                                         </td>
                                         <td>
                                             <button type="button" class="btn btn-danger remove-detail-row">Hapus</button>
@@ -97,7 +105,7 @@
         $(document).ready(function () {
             $("#form-edit").validate({
                 rules: {
-                    username: { required: true },
+                    user_id: { required: true },
                     penjualan_kode: { required: true },
                     pembeli: { required: true },
                     penjualan_tanggal: { required: true },
@@ -149,26 +157,26 @@
             // Add new detail row
             $('.add-detail-row').click(function () {
                 var newRow = `
-                    <tr>
-                        <td>
-                            <select name="barang_id[]" class="form-control" required>
-                                <option value="">- Pilih Barang -</option>
-                                @foreach($barangs as $barang)
-                                    <option value="{{ $barang->barang_id }}">{{ $barang->barang_nama }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="detail_harga[]" class="form-control" required>
-                        </td>
-                        <td>
-                            <input type="number" name="detail_jumlah[]" class="form-control" required>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-danger remove-detail-row">Hapus</button>
-                        </td>
-                    </tr>
-                `;
+                            <tr>
+                                <td>
+                                    <select name="barang_id[]" class="form-control" required>
+                                        <option value="">- Pilih Barang -</option>
+                                        @foreach($barangs as $barang)
+                                            <option value="{{ $barang->barang_id }}">{{ $barang->barang_nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" name="detail_harga[]" class="form-control" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="detail_jumlah[]" class="form-control" required>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger remove-detail-row">Hapus</button>
+                                </td>
+                            </tr>
+                        `;
                 $('#detail-table tbody').append(newRow);
             });
 

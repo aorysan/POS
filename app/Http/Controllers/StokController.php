@@ -11,6 +11,7 @@ use Yajra\DataTables\DataTables;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class StokController extends Controller
 {
@@ -33,22 +34,21 @@ class StokController extends Controller
 
     public function list(Request $request)
     {
-        $stoks = StokModel::select('user_id', 'barang_id', 'supplier_id', 'stok_jumlah', 'stok_id')
-            ->with('supplier', 'barang', 'user');
-        // 
+        $stoks = StokModel::select('user_id', 'barang_id', 'supplier_id', 'stok_jumlah', 'stok_tanggal', 'stok_id') // Add 'stok_tanggal' here
+                ->with('supplier', 'barang', 'user');
+    
         if ($request->supplier_id) {
             $stoks->where('supplier_id', $request->supplier_id);
         }
-
+    
         return DataTables::of($stoks)
-            ->addIndexColumn() // Menambahkan kolom index / no urut (default nmaa kolom: DT_RowINdex)
+            ->addIndexColumn() // Add index column (DT_RowIndex)
             ->addColumn('aksi', function ($stok) {
                 $btn  = '<a href="' . url('/stok/' . $stok->barang_id) . '" class="btn btn-info btn-sm">Detail</a> ';
-                $btn .= '<button onclick="modalAction(\'' . url('/stok/' . $stok->barang_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/stok/' . $stok->stok_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/stok/' . $stok->stok_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
                 return $btn;
             })
-
             ->rawColumns(['aksi'])
             ->make(true);
     }
@@ -84,7 +84,6 @@ class StokController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'user_id'       => 'required|exists:m_user,user_id',
                 'barang_id'     => 'required|exists:m_barang,barang_id',
                 'supplier_id'   => 'required|exists:m_supplier,supplier_id',
                 'stok_tanggal'  => 'required|date',
@@ -101,36 +100,35 @@ class StokController extends Controller
                 ]);
             }
     
-            $data = [
-                'user_id'       => $request->input('user_id'),
-                'barang_id'     => $request->input('barang_id'),
-                'supplier_id'   => $request->input('supplier_id'),
-                'stok_tanggal'  => $request->input('stok_tanggal'),
-                'stok_jumlah'   => $request->input('stok_jumlah'),
-            ];
+            // Automatically use the authenticated user's ID
+            $request->merge(['user_id' => Auth::user()->user_id]);
     
-            // Check if a record already exists with the same user_id, barang_id, and supplier_id
-            $existingRecord = StokModel::where([
-                'user_id' => $data['user_id'],
-                'barang_id' => $data['barang_id'],
-                'supplier_id' => $data['supplier_id'],
-            ])->first();
+            // Check if the stock already exists for the given barang_id and supplier_id
+            $existingStock = StokModel::where('barang_id', $request->barang_id)
+                                      ->where('supplier_id', $request->supplier_id)
+                                      ->first();
     
-            if ($existingRecord) {
-                // Update the existing record
-                $existingRecord->update([
-                    'stok_jumlah'   => $data['stok_jumlah'],
-                    'stok_tanggal'  => $data['stok_tanggal'],
-                    'updated_at'   => now(),
-                ]);
+            if ($existingStock) {
+                // Update the existing stock
+                $existingStock->stok_jumlah += $request->stok_jumlah;
+                $existingStock->stok_tanggal = $request->stok_tanggal;
+                $existingStock->save();
+    
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Data stok berhasil diupdate',
-                    'data' => $existingRecord
+                    'message' => 'Data stok berhasil diperbarui',
+                    'data' => $existingStock
                 ]);
             } else {
-                // Insert a new record
-                $stok = StokModel::create($data);
+                // Create a new record
+                $stok = StokModel::create([
+                    'user_id'       => $request->input('user_id'),
+                    'barang_id'     => $request->input('barang_id'),
+                    'supplier_id'   => $request->input('supplier_id'),
+                    'stok_tanggal'  => $request->input('stok_tanggal'),
+                    'stok_jumlah'   => $request->input('stok_jumlah'),
+                ]);
+    
                 if ($stok) {
                     return response()->json([
                         'status' => 'success',
@@ -329,41 +327,48 @@ class StokController extends Controller
 
     public function update_ajax(Request $request, $id)
     {
-        // cek apakah request dari ajax
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'username'      => 'required',
-                'barang_kode'   => 'required',
-                'barang_nama'   => 'required',
-                'supplier_nama' => 'required',
-                'stok_jumlah'   => 'required'
+                'barang_id'     => 'required|exists:m_barang,barang_id',
+                'supplier_id'   => 'required|exists:m_supplier,supplier_id',
+                'stok_tanggal'  => 'required|date',
+                'stok_jumlah'   => 'required|integer',
             ];
-            // use Illuminate\Support\Facades\Validator;
+    
             $validator = Validator::make($request->all(), $rules);
+    
             if ($validator->fails()) {
                 return response()->json([
-                    'status' => false, // respon json, true: berhasil, false: gagal
-                    'message' => 'Validasi gagal.',
-                    'msgField' => $validator->errors() // menunjukkan field mana yang error
+                    'status' => 'error',
+                    'message' => 'Validation failed',
+                    'msgField' => $validator->errors()
                 ]);
             }
-
-            $check = StokModel::find($id);
-
-            if ($check) {
-                $check->update($request->all());
+    
+            $stok = StokModel::find($id);
+    
+            if (!$stok) {
                 return response()->json([
-                    'status' => true,
-                    'message' => 'Data berhasil diupdate'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data tidak ditemukan'
+                    'status' => 'error',
+                    'message' => 'Data stok tidak ditemukan'
                 ]);
             }
+    
+            // Update the existing stock
+            $stok->stok_jumlah = $request->stok_jumlah;
+            $stok->stok_tanggal = $request->stok_tanggal;
+            $stok->save();
+    
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data stok berhasil diperbarui',
+                'data' => $stok
+            ]);
         }
-        redirect('/');
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid request'
+        ]);
     }
 
     // public function create()

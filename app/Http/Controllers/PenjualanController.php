@@ -6,10 +6,13 @@ use App\Models\PenjualanModel;
 use App\Models\DetailModel;
 use App\Models\UserModel;
 use App\Models\BarangModel;
+use App\Models\StokModel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PenjualanController extends Controller
@@ -43,7 +46,7 @@ class PenjualanController extends Controller
         )
             ->with('user'); // Load the user relationship to display user data
 
-        // Filter by supplier_id if provided
+        // Filter by user_id if provided
         if ($request->user_id) {
             $penjualans->where('user_id', $request->user_id);
         }
@@ -81,7 +84,9 @@ class PenjualanController extends Controller
     {
         $users = UserModel::all(); // Retrieve all users
         $barangs = BarangModel::all(); // Retrieve all barang
-        return view('penjualan.create_ajax', compact('users', 'barangs'));
+        $currentUserId = Auth::user()->user_id; // Get the authenticated user's ID
+    
+        return view('penjualan.create_ajax', compact('users', 'barangs', 'currentUserId'));
     }
 
     public function store_ajax(Request $request)
@@ -107,31 +112,64 @@ class PenjualanController extends Controller
                 ]);
             }
     
-            $penjualan = PenjualanModel::create([
-                'user_id' => $request->user_id,
-                'penjualan_kode' => $request->penjualan_kode,
-                'pembeli' => $request->pembeli,
-                'penjualan_tanggal' => $request->penjualan_tanggal,
-            ]);
+            // Start a new database transaction
+            DB::beginTransaction();
     
-            if ($penjualan) {
-                // Insert new details
+            try {
+                $penjualan = PenjualanModel::create([
+                    'user_id' => $request->user_id,
+                    'penjualan_kode' => $request->penjualan_kode,
+                    'pembeli' => $request->pembeli,
+                    'penjualan_tanggal' => $request->penjualan_tanggal,
+                ]);
+    
+                if (!$penjualan) {
+                    throw new \Exception('Failed to create penjualan.');
+                }
+    
                 foreach ($request->barang_id as $index => $barangId) {
-                    DetailModel::create([
-                        'penjualan_id' => $penjualan->penjualan_id, // Ensure this is set correctly
+                    $stok = StokModel::where('barang_id', $barangId)->first();
+                    if (!$stok || $stok->stok_jumlah < $request->detail_jumlah[$index]) {
+                        DB::rollBack();
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Stok tidak mencukupi untuk barang dengan ID ' . $barangId,
+                            'redirect' => 'penjualan/tambah'
+                        ]);
+                    }
+    
+                    $detail = DetailModel::create([
+                        'penjualan_id' => $penjualan->penjualan_id,
                         'barang_id' => $barangId,
                         'detail_harga' => $request->detail_harga[$index],
                         'detail_jumlah' => $request->detail_jumlah[$index],
                     ]);
+    
+                    if (!$detail) {
+                        throw new \Exception('Failed to create detail for barang ID ' . $barangId);
+                    }
+    
+                    // Decrease stock
+                    $stok->stok_jumlah -= $request->detail_jumlah[$index];
+                    if (!$stok->save()) {
+                        throw new \Exception('Failed to update stock for barang ID ' . $barangId);
+                    }
                 }
+    
+                // Commit the transaction
+                DB::commit();
+    
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Data penjualan berhasil disimpan'
                 ]);
-            } else {
+            } catch (\Exception $e) {
+                // Rollback the transaction in case of error
+                DB::rollBack();
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Data penjualan gagal disimpan'
+                    'message' => $e->getMessage(),
+                    'redirect' => 'penjualan/tambah'
                 ]);
             }
         }
@@ -142,56 +180,6 @@ class PenjualanController extends Controller
     {
         return view('penjualan.import');
     }
-
-    public function import_excel(Request $request)
-    {
-        if ($request->ajax() || $request->wantsJson()) {
-            $rules = [
-                'file_penjualan' => ['required', 'mimes:xlsx', 'max:1024']
-            ];
-            $validator = Validator::make($request->all(), $rules);
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Validasi Gagal',
-                    'msgField' => $validator->errors()
-                ]);
-            }
-    
-            $file = $request->file('file_penjualan');
-            $reader = IOFactory::createReader('Xlsx');
-            $reader->setReadDataOnly(true);
-            $spreadsheet = $reader->load($file->getRealPath());
-            $sheet = $spreadsheet->getActiveSheet();
-            $data = $sheet->toArray(null, false, true, true);
-    
-            $insert = [];
-            if (count($data) > 1) {
-                foreach ($data as $baris => $value) {
-                    if ($baris > 1) {
-                        $insert[] = [
-                            'user_id' => $value['A'],
-                            'penjualan_kode' => $value['B'],
-                            'pembeli' => $value['C'],
-                            'penjualan_tanggal'  => isset($value['D']) ? date('Y-m-d H:i:s', strtotime($value['D'])) : now(),
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-                    }
-                }
-                if (count($insert) > 0) {
-                    PenjualanModel::insert($insert);
-                }
-            }
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Data berhasil diimport'
-            ]);
-        }
-        redirect('/');
-    }
-
     public function export_excel(Request $request)
     {
         $penjualan = PenjualanModel::select('user_id', 'penjualan_kode', 'pembeli', 'penjualan_tanggal')
@@ -303,17 +291,18 @@ class PenjualanController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'username' => 'required',
+                'user_id' => 'required|exists:m_user,user_id',
                 'penjualan_kode' => 'required',
                 'pembeli' => 'required',
-                'penjualan_tanggal' => 'required',
-                'barang_id.*' => 'required|exists:m,barang_id',
+                'penjualan_tanggal' => 'required|date',
+                'barang_id.*' => 'required|exists:m_barang,barang_id',
                 'detail_harga.*' => 'required|numeric',
                 'detail_jumlah.*' => 'required|numeric',
             ];
     
             $validator = Validator::make($request->all(), $rules);
-            if ($validator->fails()) {
+    
+            if ($validator->fails()) {    
                 return response()->json([
                     'status' => false,
                     'message' => 'Validasi gagal.',
@@ -323,7 +312,12 @@ class PenjualanController extends Controller
     
             $penjualan = PenjualanModel::find($id);
             if ($penjualan) {
+                // Get old details
+                $oldDetails = $penjualan->details;
+    
+                // Update penjualan
                 $penjualan->update([
+                    'user_id' => $request->user_id,
                     'penjualan_kode' => $request->penjualan_kode,
                     'pembeli' => $request->pembeli,
                     'penjualan_tanggal' => $request->penjualan_tanggal,
@@ -340,6 +334,21 @@ class PenjualanController extends Controller
                         'detail_harga' => $request->detail_harga[$index],
                         'detail_jumlah' => $request->detail_jumlah[$index],
                     ]);
+    
+                    // Adjust stock
+                    $stok = StokModel::where('barang_id', $barangId)->first();
+                    if ($stok) {
+                        // Find old detail for this barang_id
+                        $oldDetail = $oldDetails->where('barang_id', $barangId)->first();
+                        if ($oldDetail) {
+                            // Adjust stock based on difference
+                            $stok->stok_jumlah += $oldDetail->detail_jumlah - $request->detail_jumlah[$index];
+                        } else {
+                            // New barang, decrease stock
+                            $stok->stok_jumlah -= $request->detail_jumlah[$index];
+                        }
+                        $stok->save();
+                    }
                 }
     
                 return response()->json([

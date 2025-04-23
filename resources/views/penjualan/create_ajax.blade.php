@@ -4,19 +4,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Tambah Data Penjualan</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>User</label>
-                    <select name="user_id" id="user_id" class="form-control" required>
-                        <option value="">- Pilih User -</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->user_id }}">{{ $user->username }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <!-- Hidden input field for user_id -->
+                <input type="hidden" name="user_id" value="{{ $currentUserId }}" required>
+
                 <div class="form-group">
                     <label>Kode Penjualan</label>
                     <input value="" type="text" name="penjualan_kode" id="penjualan_kode" class="form-control" required>
@@ -35,26 +28,30 @@
                         <thead>
                             <tr>
                                 <th>Nama Barang</th>
-                                <th>Harga</th>
+                                <th>Harga Jual</th>
                                 <th>Jumlah</th>
+                                <th>Total</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>
-                                    <select name="barang_id[]" class="form-control" required>
+                                    <select name="barang_id[]" class="form-control barang-select" required>
                                         <option value="">- Pilih Barang -</option>
                                         @foreach($barangs as $barang)
-                                            <option value="{{ $barang->barang_id }}">{{ $barang->barang_nama }}</option>
+                                            <option value="{{ $barang->barang_id }}" data-harga="{{ $barang->harga_jual }}">{{ $barang->barang_nama }}</option>
                                         @endforeach
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="number" name="detail_harga[]" class="form-control" required>
+                                    <input type="number" name="detail_harga[]" class="form-control detail-harga" readonly required>
                                 </td>
                                 <td>
-                                    <input type="number" name="detail_jumlah[]" class="form-control" required>
+                                    <input type="number" name="detail_jumlah[]" class="form-control detail-jumlah" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="detail_total[]" class="form-control detail-total" readonly required>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-danger remove-barang-row">Hapus</button>
@@ -76,12 +73,10 @@
     $(document).ready(function () {
         $("#form-tambah").validate({
             rules: {
-                user_id: { required: true },
                 penjualan_kode: { required: true },
                 pembeli: { required: true },
                 penjualan_tanggal: { required: true },
                 'barang_id[]': { required: true },
-                'detail_harga[]': { required: true, number: true },
                 'detail_jumlah[]': { required: true, number: true }
             },
             submitHandler: function (form) {
@@ -131,18 +126,21 @@
             var newRow = `
                 <tr>
                     <td>
-                        <select name="barang_id[]" class="form-control" required>
+                        <select name="barang_id[]" class="form-control barang-select" required>
                             <option value="">- Pilih Barang -</option>
                             @foreach($barangs as $barang)
-                                <option value="{{ $barang->barang_id }}">{{ $barang->barang_nama }}</option>
+                                <option value="{{ $barang->barang_id }}" data-harga="{{ $barang->harga_jual }}">{{ $barang->barang_nama }}</option>
                             @endforeach
                         </select>
                     </td>
                     <td>
-                        <input type="number" name="detail_harga[]" class="form-control" required>
+                        <input type="number" name="detail_harga[]" class="form-control detail-harga" readonly required>
                     </td>
                     <td>
-                        <input type="number" name="detail_jumlah[]" class="form-control" required>
+                        <input type="number" name="detail_jumlah[]" class="form-control detail-jumlah" required>
+                    </td>
+                    <td>
+                        <input type="number" name="detail_total[]" class="form-control detail-total" readonly required>
                     </td>
                     <td>
                         <button type="button" class="btn btn-danger remove-barang-row">Hapus</button>
@@ -150,11 +148,34 @@
                 </tr>
             `;
             $('#barang-table tbody').append(newRow);
+            bindBarangSelectEvent();
         });
 
         // Remove barang row
         $('#barang-table').on('click', '.remove-barang-row', function () {
             $(this).closest('tr').remove();
         });
+
+        // Initialize event binding
+        bindBarangSelectEvent();
+
+        function bindBarangSelectEvent() {
+            $('.barang-select').on('change', function () {
+                var barangId = $(this).val();
+                var harga = $(this).find('option:selected').data('harga');
+                var jumlah = $(this).closest('tr').find('.detail-jumlah').val();
+                var total = harga * jumlah;
+
+                $(this).closest('tr').find('.detail-harga').val(harga);
+                $(this).closest('tr').find('.detail-total').val(total);
+
+                // Update total when quantity changes
+                $(this).closest('tr').find('.detail-jumlah').on('input', function () {
+                    jumlah = $(this).val();
+                    total = harga * jumlah;
+                    $(this).closest('tr').find('.detail-total').val(total);
+                });
+            });
+        }
     });
 </script>
