@@ -19,26 +19,7 @@ class PenjualanController extends Controller
     // Menyimpan data penjualan baru
     public function store(Request $request)
     {
-        // Validate image
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
-            'penjualan_kode' => 'required',
-            'pembeli' => 'required',
-            'penjualan_tanggal' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $data = $request->all();
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->hashName();
-            $request->file('image')->store('public/posts');
-        }
-
-        $penjualan = PenjualanModel::create($data);
+        $penjualan = PenjualanModel::create($request->all());
         return response()->json($penjualan, 201);
     }
     
@@ -51,26 +32,7 @@ class PenjualanController extends Controller
     // Mengupdate data penjualan berdasarkan ID
     public function update(Request $request, PenjualanModel $penjualan)
     {
-        // Validate image
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
-            'penjualan_kode' => 'required',
-            'pembeli' => 'required',
-            'penjualan_tanggal' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $data = $request->all();
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->hashName();
-            $request->file('image')->store('public/posts');
-        }
-
-        $penjualan->update($data);
+        $penjualan->update($request->all());
         return $penjualan;
     }
     

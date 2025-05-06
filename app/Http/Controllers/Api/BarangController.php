@@ -19,27 +19,7 @@ class BarangController extends Controller
     // Menyimpan data barang baru
     public function store(Request $request)
     {
-        // Validate image
-        $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required',
-            'barang_kode' => 'required',
-            'barang_nama' => 'required',
-            'harga_beli' => 'required',
-            'harga_jual' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $data = $request->all();
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->hashName();
-            $request->file('image')->store('public/posts');
-        }
-
-        $barang = BarangModel::create($data);
+        $barang = BarangModel::create($request->all());
         return response()->json($barang, 201);
     }
     
@@ -52,27 +32,7 @@ class BarangController extends Controller
     // Mengupdate data barang berdasarkan ID
     public function update(Request $request, BarangModel $barang)
     {
-        // Validate image
-        $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required',
-            'barang_kode' => 'required',
-            'barang_nama' => 'required',
-            'harga_beli' => 'required',
-            'harga_jual' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $data = $request->all();
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->hashName();
-            $request->file('image')->store('public/posts');
-        }
-
-        $barang->update($data);
+        $barang->update($request->all());
         return $barang;
     }
     
