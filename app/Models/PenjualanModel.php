@@ -14,7 +14,6 @@ class PenjualanModel extends Model
         'penjualan_kode',
         'pembeli',
         'penjualan_tanggal',
-        'image'
     ];
 
     public function user()
@@ -25,14 +24,6 @@ class PenjualanModel extends Model
     public function details()
     {
         return $this->hasMany(DetailModel::class, 'penjualan_id', 'penjualan_id');
-    }
-
-    public function getImageUrlAttribute($value)
-    {
-        if ($this->image) {
-            return url('/storage/posts/' . $this->image);
-        }
-        return null;
     }
 
     use HasFactory;
