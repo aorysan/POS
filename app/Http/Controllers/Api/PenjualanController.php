@@ -2,30 +2,29 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\BarangModel;
+use App\Models\PenjualanModel;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Controller;
 
-class BarangController extends Controller
+class PenjualanController extends Controller
 {
-    // Menampilkan semua data barang
+    // Menampilkan semua data penjualan
     public function index()
     {
-        $barangs = BarangModel::all();
-        return response()->json($barangs);
+        $penjualans = PenjualanModel::all();
+        return response()->json($penjualans);
     }
 
-    // Menyimpan data barang baru
+    // Menyimpan data penjualan baru
     public function store(Request $request)
     {
         // Validate image
         $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required',
-            'barang_kode' => 'required',
-            'barang_nama' => 'required',
-            'harga_beli' => 'required',
-            'harga_jual' => 'required',
+            'user_id' => 'required',
+            'penjualan_kode' => 'required',
+            'pembeli' => 'required',
+            'penjualan_tanggal' => 'required',
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -39,26 +38,25 @@ class BarangController extends Controller
             $request->file('image')->store('public/posts');
         }
 
-        $barang = BarangModel::create($data);
-        return response()->json($barang, 201);
+        $penjualan = PenjualanModel::create($data);
+        return response()->json($penjualan, 201);
     }
     
-    // Menampilkan detail data barang berdasarkan ID
-    public function show(BarangModel $barang)
+    // Menampilkan detail data penjualan berdasarkan ID
+    public function show(PenjualanModel $penjualan)
     {
-        return $barang;
+        return $penjualan;
     }
     
-    // Mengupdate data barang berdasarkan ID
-    public function update(Request $request, BarangModel $barang)
+    // Mengupdate data penjualan berdasarkan ID
+    public function update(Request $request, PenjualanModel $penjualan)
     {
         // Validate image
         $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required',
-            'barang_kode' => 'required',
-            'barang_nama' => 'required',
-            'harga_beli' => 'required',
-            'harga_jual' => 'required',
+            'user_id' => 'required',
+            'penjualan_kode' => 'required',
+            'pembeli' => 'required',
+            'penjualan_tanggal' => 'required',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -72,14 +70,14 @@ class BarangController extends Controller
             $request->file('image')->store('public/posts');
         }
 
-        $barang->update($data);
-        return $barang;
+        $penjualan->update($data);
+        return $penjualan;
     }
     
-    // Menghapus data barang berdasarkan ID
-    public function destroy(BarangModel $barang)
+    // Menghapus data penjualan berdasarkan ID
+    public function destroy(PenjualanModel $penjualan)
     {
-        $barang->delete();
+        $penjualan->delete();
     
         return response()->json([
             'success' => true,
